@@ -9,6 +9,7 @@ classdef Steer < handle
         end
         
         function calibrate(CL, camera)
+            % optional calibration step
         end
     end
     
