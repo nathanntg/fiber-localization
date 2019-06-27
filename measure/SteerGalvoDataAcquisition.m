@@ -30,6 +30,18 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
                 CL.mode = mode;
             end
         end
+        
+        % USEFUL DURING CALIBRATION, remove later
+        function debug(CL, ch1, ch2)
+            % start if needed
+            if ~CL.started
+                CL.startDevice();
+                CL.started = true;
+            end
+            
+            % set values
+            CL.setValues(ch1, ch2);
+        end
     end
     
     
