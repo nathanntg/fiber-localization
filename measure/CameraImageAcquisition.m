@@ -12,7 +12,7 @@ classdef CameraImageAcquisition < Camera
             %   Arguments: adapter, device_id_or_name, format, properties
             
             % create camera class
-            CL@Camera();
+            CL = CL@Camera();
             
             % get hardware info
             %hw = imaqhwinfo(adapter);
@@ -22,9 +22,17 @@ classdef CameraImageAcquisition < Camera
             
             % start video input
             start(CL.vi);
+            
+            % preview
+            preview(CL.vi);
         end
         
         function delete(CL)
+            % close preview
+            if strcmp(CL.vi.Previewing, 'on')
+                closepreview(CL.vi);
+            end
+            
             % stop acquisition
             stop(CL.vi);
             

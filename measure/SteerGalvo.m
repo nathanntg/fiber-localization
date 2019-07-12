@@ -20,7 +20,7 @@ classdef SteerGalvo < Steer
             %   Detailed explanation goes here
             
             % call parent
-            CL@Steer();
+            CL = CL@Steer();
         end
         
         function calibrate(CL, camera)
@@ -33,6 +33,12 @@ classdef SteerGalvo < Steer
                 CL.started = true;
             end
             
+            % print guidance
+            fprintf('** CALIBRATION **\n');
+            fprintf('In order to calibrate the 2D mirror, the laser needs to be visualized.\n');
+            fprintf('To do so, place a fluorescence sample that fills the camera field of \n');
+            fprintf('view and turn on the laser.\n');
+            
             % build a quick calibration matrix
             calibration_quick = CL.calibrationFirstPoint(camera);
             calibration_quick = CL.calibrationAdditionalPoints(camera, calibration_quick);
@@ -42,6 +48,9 @@ classdef SteerGalvo < Steer
             
             % store calibration
             CL.calibration = calibration_detailed;
+            
+            % mark as calibrated
+            calibrate@Steer(CL, camera);
         end
         
         function moveTo(CL, x, y)

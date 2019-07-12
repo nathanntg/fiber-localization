@@ -1,5 +1,5 @@
-classdef FindFibers
-    %FINDFIBERS Summary of this class goes here
+classdef Fibers < handle
+    %FIBERS Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
@@ -14,8 +14,8 @@ classdef FindFibers
     end
     
     methods
-        function CL = FindFibers()
-            %FINDFIBERS Construct an instance of this class
+        function CL = Fibers()
+            %FIBERS Construct an instance of this class
             %   Detailed explanation goes here
             obj.Property1 = inputArg1 + inputArg2;
         end

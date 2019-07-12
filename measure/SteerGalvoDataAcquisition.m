@@ -17,7 +17,7 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
             %   Detailed explanation goes here
             
             % call parent
-            CL@SteerGalvo();
+            CL = CL@SteerGalvo();
             
             % store vendor
             CL.vendor = vendor;
