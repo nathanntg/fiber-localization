@@ -11,13 +11,15 @@ classdef Fibers < handle
         
         centers;
         radii;
+        
+        masks;
     end
     
     methods
         function CL = Fibers()
         end
         
-        function findFibers(CL, camera)
+        function findFibersViaCamera(CL, camera)
             % print guidance
             fprintf('** FIBER IDENTIFICATION **\n');
             fprintf('To most easily identify fibers, illuminate the fiber cores using a\n');
@@ -39,6 +41,10 @@ classdef Fibers < handle
                 images_mean = rgb2gray(images_mean);
             end
             
+            CL.findFibersViaImage(images_mean);
+        end
+            
+        function findFibersViaImage(CL, images_mean)
             % save image
             CL.im = images_mean;
             
@@ -59,6 +65,10 @@ classdef Fibers < handle
                 radius_range = [0.7 1.3] .* CL.default_radius;
             end
             
+            % need integer range
+            radius_range(1) = floor(radius_range(1));
+            radius_range(2) = ceil(radius_range(2));
+            
             for sensitivity = linspace(0.85, 0.97, 20)
                 [cur_centers, cur_radii] = imfindcircles(images_mean, radius_range, 'ObjectPolarity', 'bright', 'Sensitivity', sensitivity);
                 
@@ -77,6 +87,9 @@ classdef Fibers < handle
             fe = FiberEditor(images_mean, CL.centers, CL.radii);
             fe.default_radius = mean(radius_range);
             [CL.centers, CL.radii] = fe.waitForAnnotations();
+            
+            % STEP 3: make masks
+            CL.makeMasks();
         end
         
         function [centers, radii] = getFibers(CL)
@@ -85,7 +98,10 @@ classdef Fibers < handle
         end
         
         function intensity = extractIntensity(CL, frame)
-            
+            intensity = zeros(size(CL.centers, 1), 1);
+            for i = 1:size(CL.centers, 1)
+                intensity(i) = mean(frame(CL.masks{i}));
+            end
         end
     end
     
@@ -102,6 +118,17 @@ classdef Fibers < handle
             
             % no overlaps?
             s = any(dist_actual(:) < dist_min(:));
+        end
+        
+        function makeMasks(CL)
+            % make a mesh grid based on the frame dimensions
+            [x, y] = meshgrid(1:size(CL.im, 2), 1:size(CL.im, 1));
+            
+            % make masks
+            CL.masks = cell(1, size(CL.centers, 1));
+            for i = 1:size(CL.centers, 1)
+                CL.masks{i} = find(((x - CL.centers(i, 1)) .^ 2 + (y - CL.centers(i, 2)) .^ 2) < (CL.radii(i) .^ 2));
+            end
         end
     end
 end

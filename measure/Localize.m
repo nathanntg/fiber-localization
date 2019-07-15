@@ -33,7 +33,7 @@ classdef Localize < handle
             end
             
             CL.fibers = FindFibers();
-            CL.fibers.findFibers(CL.camera);
+            CL.fibers.findFibersViaCamera(CL.camera);
         end
         
         function [distances, frames] = localizeFibers(CL, varargin)
@@ -80,7 +80,7 @@ classdef Localize < handle
             % STEP 2: find fibers
             if findfibers
                 CL.fibers = FindFibers();
-                CL.fibers.findFibers(CL.camera);
+                CL.fibers.findFibersViaCamera(CL.camera);
             end
             fibers_xy = CL.fibers.getFibers();
             fibers_num = size(fibers_xy, 1);

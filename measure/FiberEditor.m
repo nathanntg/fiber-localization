@@ -92,7 +92,7 @@ classdef FiberEditor < handle
             centers = cat(1, centers{:});
             
             radii = cellfun(@(x) x.Radius, CL.annotations(idx));
-            radii = radii(:)';
+            radii = radii(:);
         end
         
         function [centers, radii] = waitForAnnotations(CL)
