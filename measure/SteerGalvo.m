@@ -65,13 +65,13 @@ classdef SteerGalvo < Steer
             h = figure;
             h.Position = h.Position .* [1 1 2.1 1];
             
-            subplot(2, 1, 1);
+            subplot(1, 2, 1);
             scatter(CL.calibration(:, 1), CL.calibration(:, 2), [], colors);
             xlabel('X');
             ylabel('Y');
             axis square;
             
-            subplot(2, 1, 2);
+            subplot(1, 2, 2);
             scatter(CL.calibration(:, 3), CL.calibration(:, 4), [], colors);
             xlabel('Channel 1');
             ylabel('Channel 2');

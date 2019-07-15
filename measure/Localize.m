@@ -74,12 +74,12 @@ classdef Localize < handle
             
             % STEP 1: calibrate
             if calibrate
-                CL.steer.calibrate();
+                CL.steer.calibrate(CL.camera);
             end
             
             % STEP 2: find fibers
             if findfibers
-                CL.fibers = FindFibers();
+                CL.fibers = Fibers();
                 CL.fibers.findFibersViaCamera(CL.camera);
             end
             fibers_xy = CL.fibers.getFibers();

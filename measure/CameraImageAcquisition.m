@@ -60,9 +60,6 @@ classdef CameraImageAcquisition < Camera
             % create camera class
             CL = CL@Camera();
             
-            % get hardware info
-            %hw = imaqhwinfo(adapter);
-            
             % create video object
             CL.vi = videoinput(varargin{:});
             
