@@ -37,7 +37,8 @@ classdef SteerGalvo < Steer
             fprintf('** CALIBRATION **\n');
             fprintf('In order to calibrate the 2D mirror, the laser needs to be visualized.\n');
             fprintf('To do so, place a fluorescence sample that fills the camera field of \n');
-            fprintf('view and turn on the laser.\n');
+            fprintf('view and turn on the laser. Press any key to continue.\n');
+            pause;
             
             % build a quick calibration matrix
             calibration_quick = CL.calibrationFirstPoint(camera);
@@ -172,7 +173,14 @@ classdef SteerGalvo < Steer
         end
         
         function [x, y] = getIlluminationPosition(CL, camera)
+            % discard frame
+            camera.getFrames(1);
             
+            % get frame
+            frame = camera.getFrames(1);
+            
+            % get spot position
+            [x, y] = getSpot(frame);
         end
         
         function [ch1, ch2] = moveIlluminationTo(CL, x, y)

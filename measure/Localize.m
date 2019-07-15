@@ -131,7 +131,8 @@ classdef Localize < handle
             
             % STEP 4: save
             if ~isempty(file)
-                save(file, 'distances', 'frames', '-v7.3');
+                [fiber_centers, fiber_radii] = CL.fibers.getFibers();
+                save(file, 'distances', 'frames', 'fiber_centers', 'fiber_radii', '-v7.3');
             end
         end
     end

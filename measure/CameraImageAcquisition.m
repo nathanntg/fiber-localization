@@ -8,7 +8,7 @@ classdef CameraImageAcquisition < Camera
     
     methods (Static)
         function CL = selectCamera()
-            fprintf('** Select Video Device **\n');
+            fprintf('** SELECT CAMERA **\n');
             
             % step 1: adaptor
             fprintf('Which video adaptor would you like to use? If you do not see the\n');

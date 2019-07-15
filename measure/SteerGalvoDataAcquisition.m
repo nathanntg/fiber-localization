@@ -135,9 +135,6 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
         function startDevice(CL)
             CL.session = daq.createSession(CL.vendor);
             addAnalogOutputChannel(CL.session, CL.device_name, CL.channels, CL.mode);
-            
-            % run in foreground
-            startForeground(CL.session);
         end
         
         function stopDevice(CL)
