@@ -183,11 +183,66 @@ classdef SteerGalvo < Steer
             [x, y] = getSpot(frame);
         end
         
-        function [ch1, ch2] = moveIlluminationTo(CL, x, y)
-            % REQUIRES AT LEAST 3 POINTS IN CALIBRATION MATRIX
+        function [ch1, ch2] = moveIlluminationTo(CL, camera, calibration, x, y)
+            % ASSUMES CALIBRATION COMES FROM `calibrationAdditionalPoints`
+            basis1 = calibration(2, :) - calibration(1, :);
+            basis2 = calibration(3, :) - calibration(1, :);
+            if dot(basis1([3 4]), basis2([3 4])) > eps
+                error('Expected calibration matrix with orthogonal steps in rows 1-2 and rows 1-3.');
+            end
+            
+            % normalize, effect of steps along basis
+            basis1 = basis1 ./ norm(basis1([3 4]));
+            basis2 = basis2 ./ norm(basis2([3 4]));
+            
+            A = [basis1([1 2]); basis2([1 2])];
             
             % find closest point in calibration data
-            [~, idx] = min(sum(bsxfun(@minus, CL.calibration(:, [1 2]), [x y]) .^ 2, 2));
+            [~, idx] = min(sum(bsxfun(@minus, calibration(:, [1 2]), [x y]) .^ 2, 2));
+            known = calibration(idx, :);
+            
+            for j = 1:20
+                % measure distance from previous known point
+                distance = [x y] - known([1 2]);
+                
+                % if within desired distance, return channel values
+                if norm(distance) <= 4
+                    ch1 = known(3);
+                    ch2 = known(4);
+                    return;
+                end
+
+                % figure out how to alter channel values to move by desired
+                % distance
+                step = linsolve(A, distance');
+
+                % update channel position from the previous known point
+                ch = known([3 4]) + step(1) .* basis1([3 4]) + step(2) .* basis2([3 4]);
+
+                % update mirror position
+                CL.setValues(ch(1), ch(2));
+
+                % figure out laser point
+                [spot_x, spot_y] = CL.getIlluminationPosition(camera);
+                
+                % in case we left the FOV?
+                if isempty(spot_x)
+                    % try half step
+                    step = step ./ 2;
+                    ch = known([3 4]) + step(1) .* basis1([3 4]) + step(2) .* basis2([3 4]);
+
+                    % update mirror position
+                    CL.setValues(ch(1), ch(2));
+                    
+                    % figure out laser point
+                    [spot_x, spot_y] = CL.getIlluminationPosition(camera);
+                end
+
+                % update closest point
+                known = [spot_x spot_y ch];
+            end
+            
+            error('The `moveIlluminationTo` did not converge to the desired point.');
         end
         
         function [ch1, ch2] = projectXyToValues(CL, x, y)
