@@ -31,8 +31,14 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
             end
         end
         
-        % USEFUL DURING CALIBRATION, remove later
-        function debug(CL, ch1, ch2)
+        % debugging functions, useful for calibration
+        
+        function debugManual(CL)
+            % TODO: get from Hamamatsu computer
+        end
+            
+        
+        function debugPoint(CL, ch1, ch2)
             % start if needed
             if ~CL.started
                 CL.startDevice();
@@ -42,8 +48,88 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
             % set values
             CL.setValues(ch1, ch2);
         end
+        
+        function debugLine(CL, ch, rng, repeat, steps)
+            if ch ~= 1 && ch ~= 2
+                error('Invalid channel, specify either 1 or 2.');
+            end
+            
+            % get range
+            if ~exist('rng', 'var') || isempty(rng)
+                if ch == 1
+                    rng = CL.ch1_range;
+                elseif ch == 2
+                    rng = CL.ch2_range;
+                end
+            elseif isscalar(rng)
+                rng = rng .* [-1 1];
+            end
+            
+            % repeat default
+            if ~exist('repeat', 'var') || isempty(repeat)
+                repeat = 10;
+            end
+            
+            % steps
+            if ~exist('steps', 'var') || isempty(steps)
+                steps = 500;
+            end
+            
+            % make values
+            if ch == 1
+                ch1 = linspace(rng(1), rng(2), steps);
+                ch2 = zeros(size(ch1));
+            elseif ch == 2
+                ch2 = linspace(rng(1), rng(2), steps);
+                ch1 = zeros(size(ch2));
+            end
+            
+            % run
+            for i = 1:repeat
+                queueOutputData(CL.session, [ch1' ch2']);
+                CL.session.startForeground();
+            end
+        end
+        
+        function debugSquare(CL, rng1, rng2, repeat, steps)
+            % get range
+            if ~exist('rng1', 'var') || isempty(rng1)
+                rng1 = CL.ch1_range;
+            elseif isscalar(rng1)
+                rng1 = rng1 .* [-1 1];
+            end
+            if ~exist('rng2', 'var') || isempty(rng2)
+                rng2 = CL.ch2_range;
+            elseif isscalar(rng1)
+                rng2 = rng2 .* [-1 1];
+            end
+            
+            % repeat default
+            if ~exist('repeat', 'var') || isempty(repeat)
+                repeat = 10;
+            end
+            
+            % steps
+            if ~exist('steps', 'var') || isempty(steps)
+                steps = 500;
+            end
+            
+            % make values
+            ch1_asc = linspace(rng1(1), rng1(2), steps);
+            ch1_desc = ch1_asc(end:-1:1);
+            ch2_asc = linspace(rng2(1), rng2(2), steps);
+            ch2_desc = ch2_asc(end:-1:1);
+            
+            ch1 = [ch1_asc rng1(2) .* ones(size(ch2_asc)) ch1_desc rng1(1) .* ones(size(ch2_desc))];
+            ch2 = [rng2(1) .* ones(size(ch1_asc)) ch2_asc rng2(2) .* ones(size(ch1_desc)) ch2_desc];
+            
+            % run
+            for i = 1:repeat
+                queueOutputData(CL.session, [ch1' ch2']);
+                CL.session.startForeground();
+            end
+        end
     end
-    
     
     methods (Access=protected)
         function startDevice(CL)
