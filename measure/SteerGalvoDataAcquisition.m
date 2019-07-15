@@ -11,6 +11,28 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
         session;
     end
     
+    methods (Static)
+        function CL = selectCamera()
+            fprintf('** SELECT DATA ACQUISITION DEVICE **\n');
+            
+            % step 1: device
+            fprintf('Which device would you like to use?\n\n');
+            info = daq.getDevices();
+            for i = 1:length(info)
+                fprintf('%d. %s\n', i, info(i).Description);
+            end
+            fprintf('\n');
+            device_idx = input('Device: ');
+            vendor_id = info(device_idx).Vendor;
+            device_id = info(device_idx).DeviceID;
+            
+            fprintf('Defaulting to channels 0 and 1, voltage control.\n');
+            
+            % create steering device
+            CL = SteerGalvoDataAcquisition(vendor_id, device_id);
+        end
+    end
+    
     methods
         function CL = SteerGalvoDataAcquisition(vendor, device_name, channels, mode)
             %STEERGALVODATAACQUISITION Construct an instance of this class
@@ -45,6 +67,10 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
                 CL.started = true;
             end
             
+            if ch1 < CL.ch1_range(1) || ch1 > CL.ch1_range(2) || ch2 < CL.ch2_range(1) || ch2 > CL.ch2_range(2)
+                error('Point out of bounds.');
+            end
+            
             % set values
             CL.setValues(ch1, ch2);
         end
@@ -63,6 +89,9 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
                 end
             elseif isscalar(rng)
                 rng = rng .* [-1 1];
+            end
+            if (ch == 1 && (rng(1) < CL.ch1_range(1) || rng(2) > CL.ch2_range(2))) || (ch == 2 && (rng(1) < CL.ch2_range(1) || rng(2) > CL.ch2_range(2)))
+                error('Range out of bounds.');
             end
             
             % repeat default
@@ -102,6 +131,9 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
                 rng2 = CL.ch2_range;
             elseif isscalar(rng1)
                 rng2 = rng2 .* [-1 1];
+            end
+            if rng1(1) < CL.ch1_range(1) || rng1(2) > CL.ch2_range(2) || rng2(1) < CL.ch2_range(1) || rng2(2) > CL.ch2_range(2)
+                error('Range out of bounds.');
             end
             
             % repeat default

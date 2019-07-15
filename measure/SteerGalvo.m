@@ -23,6 +23,16 @@ classdef SteerGalvo < Steer
             CL = CL@Steer();
         end
         
+        function setRange(CL, ch1_range, ch2_range)
+            if ~isempty(CL.calibration)
+                warning('Resetting calibration data.');
+                CL.calibration = [];
+            end
+            
+            CL.ch1_range = ch1_range;
+            CL.ch2_range = ch2_range;
+        end
+        
         function calibrate(CL, camera)
             %CALIBRATE Summary of this method goes here
             %   Detailed explanation goes here
@@ -47,9 +57,35 @@ classdef SteerGalvo < Steer
             calibrate@Steer(CL, camera);
         end
         
+        function debugCalibration(CL)
+            % get colors
+            colors = hsv(size(CL.calibration, 1));
+            
+            % open figure
+            h = figure;
+            h.Position = h.Position .* [1 1 2.1 1];
+            
+            subplot(2, 1, 1);
+            scatter(CL.calibration(:, 1), CL.calibration(:, 2), [], colors);
+            xlabel('X');
+            ylabel('Y');
+            axis square;
+            
+            subplot(2, 1, 2);
+            scatter(CL.calibration(:, 3), CL.calibration(:, 4), [], colors);
+            xlabel('Channel 1');
+            ylabel('Channel 2');
+            axis square;
+        end
+        
         function moveTo(CL, x, y)
             % look up in calibration data
             [ch1, ch2] = CL.projectXyToValues(x, y);
+            
+            % check range
+            if ch1 < CL.ch1_range(1) || ch1 > CL.ch1_range(2) || ch2 < CL.ch2_range(1) || ch2 > CL.ch2_range(2)
+                error('Point %.1f, %.1f is outside accessible range (%.1f, %.1f).', x, y, ch1, ch2);
+            end
             
             % move to point
             CL.setValues(ch1, ch2);
@@ -70,7 +106,7 @@ classdef SteerGalvo < Steer
         function stopDevice(CL) %#ok<MANU>
         end
         
-        function calibration = calibrateRange(CL)
+        function calibration = calibrateRange(CL, camera)
             steps_per_axis = 9; % will scan steps 
             
             % assemble channel 1 steps
@@ -113,7 +149,7 @@ classdef SteerGalvo < Steer
             
             % get spot position
             try
-                [x, y] = getSpot(frame);
+                [x, y] = findSpot(frame);
             catch
                 x = [];
                 y = [];
