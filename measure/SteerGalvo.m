@@ -12,6 +12,8 @@ classdef SteerGalvo < Steer
         
         % calibration data
         calibration = []; % [x y ch1 ch2]
+        interp_ch1;
+        interp_ch2;
     end
     
     methods
@@ -52,6 +54,10 @@ classdef SteerGalvo < Steer
             
             % calibrate by exploring range
             CL.calibration = CL.calibrateRange(camera);
+            
+            % build interpolants
+            CL.interp_ch1 = scatteredInterpolant(CL.calibration(:, 1), CL.calibration(:, 2), CL.calibration(:, 3), 'linear', 'linear');
+            CL.interp_ch2 = scatteredInterpolant(CL.calibration(:, 1), CL.calibration(:, 2), CL.calibration(:, 4), 'linear', 'linear');
             
             % mark as calibrated
             calibrate@Steer(CL, camera);
@@ -159,8 +165,8 @@ classdef SteerGalvo < Steer
         function [ch1, ch2] = projectXyToValues(CL, x, y)
             assert(~isempty(CL.calibration), 'calibration required');
             
-            ch1 = interp2(CL.calibration(:, 1), CL.calibration(:, 2), CL.calibration(:, 3), x, y, 'makima');
-            ch2 = interp2(CL.calibration(:, 1), CL.calibration(:, 2), CL.calibration(:, 4), x, y, 'makima');
+            ch1 = CL.interp_ch1(x, y);
+            ch2 = CL.interp_ch2(x, y);
         end
     end
     
