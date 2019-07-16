@@ -1,6 +1,10 @@
 %% SETUP VIDEO ACQUISITION
 camera = CameraImageAcquisition.selectCamera();
 
+% configure
+vs = camera.getConfiguration();
+vs.ExposureTime = 0.01;
+
 %% SETUP GALVO STEERING
 steer = SteerGalvoDataAcquisition.selectGalvo();
 steer.setRange([-10 10], [-10 10]);
@@ -14,4 +18,5 @@ steer.debugSquare();
 localize = Localize(camera, steer);
 
 %% RUN, SAVING OUTPUT TO FILE
-localize.localizeFibers('file', 'output.mat');
+localize.localizeFibers('calibrate', true, 'findfibers', true, 'file', 'output.mat');
+

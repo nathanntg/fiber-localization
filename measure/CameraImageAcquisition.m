@@ -46,9 +46,6 @@ classdef CameraImageAcquisition < Camera
                 
                 CL = CameraImageAcquisition(adaptor, device_id, format);
             end
-            
-            % configure
-            CL.configure();
         end
     end
     
@@ -67,11 +64,16 @@ classdef CameraImageAcquisition < Camera
             preview(CL.vi);
         end
         
-        function configure(CL)
+        function vs = getConfiguration(CL)
             vs = getselectedsource(CL.vi);
-            
-            % defaults
-            vs.ExposureTime = 0.01;
+        end
+        
+        function startPreview(CL)
+            preview(CL.vi);
+        end
+        
+        function stopPreview(CL)
+            stoppreview(CL.vi);
         end
         
         function delete(CL)
