@@ -9,6 +9,9 @@ if ~exist('mx', 'var')
     mx = 64;
 end
 
+% filter
+img = medfilt2(img, [3 3]);
+
 % binarize
 img_bin = imbinarize(img);
 
