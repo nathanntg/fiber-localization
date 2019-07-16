@@ -29,12 +29,21 @@ cnt = nnz(idx);
 if cnt < 1
     error('Unable to find illumination spot.');
 elseif cnt > 1
-    % TODO: maybe show user interface to select correct spot?
     error('Found multiple illumination spots.');
-else
-    x = centroids(idx, 1);
-    y = centroids(idx, 2);
-    radius = radii(idx);
+    
+    % TODO: potentiall re-enable by converting above to warning
+    % show user interface to select correct spot?
+    fe = FiberEditor(img, centroids(idx, :), radii(idx));
+    title('Identify illumination spot');
+    [centroids, radii] = fe.waitForAnnotations();
+    
+    if ~isscalar(radii)
+        error('Unable to find illumination spot.');
+    end
 end
+
+x = centroids(idx, 1);
+y = centroids(idx, 2);
+radius = radii(idx);
 
 end

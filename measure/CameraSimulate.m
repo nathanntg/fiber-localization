@@ -7,6 +7,8 @@ classdef CameraSimulate < Camera
         
         mode = 'localize-fibers'; % 'calibrate', 'find-fibers', 'localize-fibers'
         
+        fibers_xy = [];
+        fiber_radius = 14;
         galvo_xy = [0 0];
     end
     
@@ -14,6 +16,27 @@ classdef CameraSimulate < Camera
         function CL = CameraSimulate()
             % create camera class
             CL = CL@Camera();
+            
+            % generate random fibers
+            failures = 25;
+            CL.fibers_xy = [];
+            while failures > 0
+                x = randi([1 + CL.fiber_radius CL.width - CL.fiber_radius], 1);
+                y = randi([1 + CL.fiber_radius CL.height - CL.fiber_radius], 1);
+                
+                % distance to other fibers
+                if isempty(CL.fibers_xy)
+                    distance = [];
+                else
+                    distance = sqrt(sum(bsxfun(@minus, CL.fibers_xy, [x y]) .^ 2, 2));
+                end
+                
+                if any(distance < (2 * CL.fiber_radius))
+                    failures = failures - 1;
+                else
+                    CL.fibers_xy = [CL.fibers_xy; x y];
+                end
+            end
         end
         
         function setGalvoXY(CL, x, y)
@@ -49,8 +72,18 @@ classdef CameraSimulate < Camera
                 % make a mesh grid based on the frame dimensions
                 [x, y] = meshgrid(1:CL.width, 1:CL.height);
                 
+                % draw laser spot
                 idx = ((x - CL.galvo_xy(1)) .^ 2 + (y - CL.galvo_xy(2)) .^ 2) < 14 .^ 2;
                 frame(idx) = 1 - frame(idx);
+            elseif strcmp(CL.mode, 'find-fibers')
+                % make a mesh grid based on the frame dimensions
+                [x, y] = meshgrid(1:CL.width, 1:CL.height);
+                
+                % draw each fiber
+                for i = 1:size(CL.fibers_xy, 1)
+                    idx = ((x - CL.fibers_xy(i, 1)) .^ 2 + (y - CL.fibers_xy(i, 2)) .^ 2) < CL.fiber_radius .^ 2;
+                    frame(idx) = 1 - frame(idx);
+                end
             else
                 error('Simulation mode not supported: %s.', CL.mode);
             end
