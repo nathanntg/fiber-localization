@@ -4,6 +4,9 @@ classdef Fibers < handle
     
     properties
         default_radius;
+        
+        overlap_fraction = 0.85;
+        mask_fraction = 0.7;
     end
     
     properties (Access=protected)
@@ -41,6 +44,9 @@ classdef Fibers < handle
                 images_mean = rgb2gray(images_mean);
             end
             
+            % adjust image
+            images_mean = imadjust(mat2gray(images_mean));
+            
             CL.findFibersViaImage(images_mean);
         end
             
@@ -50,17 +56,13 @@ classdef Fibers < handle
             
             % STEP 1: automatic detection
             if isempty(CL.default_radius)
-                % binarize
-                images_bin = imbinarize(images_mean);
+                % annotate one image
+                fe = FiberEditor(images_mean);
+                title('Annotate one fiber');
+                fe.default_radius = 25;
+                [~, radius] = fe.waitForAnnotations();
                 
-                % get axis length as guess of radii
-                properties = regionprops(images_bin, 'MajorAxisLength', 'MinorAxisLength');
-                
-                % concatenate axis lengths, average major / minor, and
-                % convert from diameter to radius
-                potential_radii = mean([cat(1, properties(:).MajorAxisLength) cat(1, properties(:).MinorAxisLength)], 2) ./ 2;
-                
-                radius_range = [0.7 1.3] .* median(potential_radii);
+                radius_range = [0.7 1.3] .* mean(radius);
             else
                 radius_range = [0.7 1.3] .* CL.default_radius;
             end
@@ -69,7 +71,7 @@ classdef Fibers < handle
             radius_range(1) = floor(radius_range(1));
             radius_range(2) = ceil(radius_range(2));
             
-            for sensitivity = linspace(0.85, 0.97, 20)
+            for sensitivity = linspace(0.8, 0.97, 20)
                 [cur_centers, cur_radii] = imfindcircles(images_mean, radius_range, 'ObjectPolarity', 'bright', 'Sensitivity', sensitivity);
                 
                 if CL.isFeasibleFibers(cur_centers, cur_radii) || isempty(CL.centers)
@@ -114,10 +116,10 @@ classdef Fibers < handle
             dist_actual(logical(eye(size(dist_actual)))) = inf;
             
             % minimum distance to not overlap
-            dist_min = radii + radii';
+            dist_min = CL.overlap_fraction .* (radii + radii');
             
             % no overlaps?
-            s = any(dist_actual(:) < dist_min(:));
+            s = ~any(dist_actual(:) < dist_min(:));
         end
         
         function makeMasks(CL)
@@ -127,7 +129,7 @@ classdef Fibers < handle
             % make masks
             CL.masks = cell(1, size(CL.centers, 1));
             for i = 1:size(CL.centers, 1)
-                CL.masks{i} = find(((x - CL.centers(i, 1)) .^ 2 + (y - CL.centers(i, 2)) .^ 2) < (CL.radii(i) .^ 2));
+                CL.masks{i} = find(((x - CL.centers(i, 1)) .^ 2 + (y - CL.centers(i, 2)) .^ 2) < ((CL.mask_fraction * CL.radii(i)) .^ 2));
             end
         end
     end

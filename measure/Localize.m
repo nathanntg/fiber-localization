@@ -75,6 +75,7 @@ classdef Localize < handle
             % STEP 1: calibrate
             if calibrate
                 CL.steer.calibrate(CL.camera);
+                CL.steer.debugCalibration();
             end
             
             % STEP 2: find fibers

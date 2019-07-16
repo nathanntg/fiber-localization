@@ -70,7 +70,8 @@ classdef CameraImageAcquisition < Camera
         function configure(CL)
             vs = getselectedsource(CL.vi);
             
-            % TODO: write configuration process
+            % defaults
+            vs.ExposureTime = 0.01;
         end
         
         function delete(CL)

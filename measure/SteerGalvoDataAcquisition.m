@@ -12,7 +12,7 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
     end
     
     methods (Static)
-        function CL = selectCamera()
+        function CL = selectGalvo()
             fprintf('** SELECT DATA ACQUISITION DEVICE **\n');
             
             % step 1: device
@@ -23,8 +23,8 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
             end
             fprintf('\n');
             device_idx = input('Device: ');
-            vendor_id = info(device_idx).Vendor;
-            device_id = info(device_idx).DeviceID;
+            vendor_id = info(device_idx).Vendor.ID;
+            device_id = info(device_idx).ID;
             
             fprintf('Defaulting to channels 0 and 1, voltage control.\n');
             
@@ -76,6 +76,12 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
         end
         
         function debugLine(CL, ch, rng, repeat, steps)
+            % start if needed
+            if ~CL.started
+                CL.startDevice();
+                CL.started = true;
+            end
+            
             if ch ~= 1 && ch ~= 2
                 error('Invalid channel, specify either 1 or 2.');
             end
@@ -121,6 +127,12 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
         end
         
         function debugSquare(CL, rng1, rng2, repeat, steps)
+            % start if needed
+            if ~CL.started
+                CL.startDevice();
+                CL.started = true;
+            end
+            
             % get range
             if ~exist('rng1', 'var') || isempty(rng1)
                 rng1 = CL.ch1_range;
@@ -157,7 +169,7 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
             
             % run
             for i = 1:repeat
-                queueOutputData(CL.session, [ch1' ch2']);
+                CL.session.queueOutputData([ch1' ch2']);
                 CL.session.startForeground();
             end
         end
