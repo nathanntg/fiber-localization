@@ -68,21 +68,33 @@ classdef CameraSimulate < Camera
             % noise background
             frame = rand(CL.height, CL.width) ./ 10;
             
+            % make a mesh grid based on the frame dimensions
+            [x, y] = meshgrid(1:CL.width, 1:CL.height);
+            
             if strcmp(CL.mode, 'calibrate')
-                % make a mesh grid based on the frame dimensions
-                [x, y] = meshgrid(1:CL.width, 1:CL.height);
-                
                 % draw laser spot
-                idx = ((x - CL.galvo_xy(1)) .^ 2 + (y - CL.galvo_xy(2)) .^ 2) < 14 .^ 2;
-                frame(idx) = 1 - frame(idx);
+                mask = ((x - CL.galvo_xy(1)) .^ 2 + (y - CL.galvo_xy(2)) .^ 2) < 14 .^ 2;
+                frame(mask) = 1 - frame(mask);
             elseif strcmp(CL.mode, 'find-fibers')
-                % make a mesh grid based on the frame dimensions
-                [x, y] = meshgrid(1:CL.width, 1:CL.height);
+                % draw each fiber
+                for i = 1:size(CL.fibers_xy, 1)
+                    mask = ((x - CL.fibers_xy(i, 1)) .^ 2 + (y - CL.fibers_xy(i, 2)) .^ 2) < CL.fiber_radius .^ 2;
+                    frame(mask) = 1 - frame(mask);
+                end
+            elseif strcmp(CL.mode, 'localize-fibers')
+                % get illuminated fiber
+                [distance, idx] = min(sqrt(sum(bsxfun(@minus, CL.fibers_xy, CL.galvo_xy) .^ 2, 2)));
+                
+                if distance > CL.fiber_radius
+                    warning('Illumination point does not correspond with fiber. Point: %.1f, %.1f. Closest fiber: %.1f, %.1f (%.2f).', ...
+                        CL.galvo_xy(1), CL.galvo_xy(2), CL.fibers_xy(idx, 1), CL.fibers_xy(idx, 2), distance);
+                end
                 
                 % draw each fiber
                 for i = 1:size(CL.fibers_xy, 1)
-                    idx = ((x - CL.fibers_xy(i, 1)) .^ 2 + (y - CL.fibers_xy(i, 2)) .^ 2) < CL.fiber_radius .^ 2;
-                    frame(idx) = 1 - frame(idx);
+                    mask = ((x - CL.fibers_xy(i, 1)) .^ 2 + (y - CL.fibers_xy(i, 2)) .^ 2) < CL.fiber_radius .^ 2;
+                    intensity = 1 / (1 + abs(i - idx));
+                    frame(mask) = frame(mask) + 0.9 * intensity;
                 end
             else
                 error('Simulation mode not supported: %s.', CL.mode);

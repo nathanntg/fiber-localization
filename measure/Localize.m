@@ -89,7 +89,12 @@ classdef Localize < handle
             frames = [];
             distances = nan(fibers_num, fibers_num, CL.frames_to_use);
             for i = 1:size(fibers_xy, 1)
-                CL.steer.moveTo(fibers_xy(i, 1), fibers_xy(i, 2));
+                try
+                    CL.steer.moveTo(fibers_xy(i, 1), fibers_xy(i, 2));
+                catch
+                    warning('Skipping fiber %d (at %.1f, %.1f) outside of galvo range.', i, fibers_xy(i, 1), fibers_xy(i, 2));
+                    continue;
+                end
                 
                 % discard frames
                 if CL.frames_to_discard > 0
