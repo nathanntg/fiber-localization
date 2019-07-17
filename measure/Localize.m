@@ -24,7 +24,7 @@ classdef Localize < handle
         end
         
         function calibrate(CL)
-            CL.steer.calibrate();
+            CL.steer.calibrate(CL.camera);
         end
         
         function findFibers(CL, varargin)
@@ -32,7 +32,7 @@ classdef Localize < handle
                 error('Steering has not been calibrated.');
             end
             
-            CL.fibers = FindFibers();
+            CL.fibers = Fibers();
             CL.fibers.findFibersViaCamera(CL.camera);
         end
         

@@ -87,6 +87,11 @@ classdef CameraImageAcquisition < Camera
         end
         
         function frames = getFrames(CL, n)
+            % occassionally can still be running? seems like a MATLAB bug
+            if strcmp(CL.vi.Running, 'on')
+                pause(0.1);
+            end
+            
             % frames per trigger
             CL.vi.FramesPerTrigger = n;
             
