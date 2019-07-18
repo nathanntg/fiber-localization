@@ -1,6 +1,5 @@
 classdef SteerGalvoSimulate < SteerGalvo
-    %STEERGALVOSIMULATE Summary of this class goes here
-    %   Detailed explanation goes here
+    %STEERGALVOSIMULATE Galvo simulation class
     
     properties (Access=protected)
         camera

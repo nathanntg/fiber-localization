@@ -1,6 +1,6 @@
 classdef SteerGalvoDataAcquisition < SteerGalvo
-    %STEERGALVODATAACQUISITION Summary of this class goes here
-    %   Detailed explanation goes here
+    %STEERGALVODATAACQUISITION Use MATLAB DAQ session to control galvo
+    %   Incldues helpful debugging functions.
     
     properties (Access=protected)
         vendor;
@@ -55,27 +55,13 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
         
         % debugging functions, useful for calibration
         
-        function debugManual(CL)
-            % TODO: get from Hamamatsu computer
-        end
-            
-        
-        function debugPoint(CL, ch1, ch2)
-            % start if needed
-            if ~CL.started
-                CL.startDevice();
-                CL.started = true;
-            end
-            
-            if ch1 < CL.ch1_range(1) || ch1 > CL.ch1_range(2) || ch2 < CL.ch2_range(1) || ch2 > CL.ch2_range(2)
-                error('Point out of bounds.');
-            end
-            
-            % set values
-            CL.setValues(ch1, ch2);
-        end
-        
         function debugLine(CL, ch, rng, repeat, steps)
+            % ch: which channel (1 or 2, required)
+            % rng: range to move along channel (default full range)
+            % repeat: times to repeat (default 10)
+            % steps: steps to complete line (default 500)
+            %        time depends on the frequency of the DAQ device
+            
             % start if needed
             if ~CL.started
                 CL.startDevice();
@@ -127,6 +113,12 @@ classdef SteerGalvoDataAcquisition < SteerGalvo
         end
         
         function debugSquare(CL, rng1, rng2, repeat, steps)
+            % rng1: range to move along channel 1 (default full range)
+            % rng2: range to move along channel 2 (default full range)
+            % repeat: times to repeat (default 10)
+            % steps: steps to complete one edge of the square (default 500)
+            %        time depends on the frequency of the DAQ device
+            
             % start if needed
             if ~CL.started
                 CL.startDevice();

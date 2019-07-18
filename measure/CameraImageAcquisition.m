@@ -1,6 +1,5 @@
 classdef CameraImageAcquisition < Camera
-    %CAMERAIMAGEACQUISITION Summary of this class goes here
-    %   Detailed explanation goes here
+    %CAMERAIMAGEACQUISITION Camera instance using image acquistion toolbox
     
     properties (Access=protected)
         vi

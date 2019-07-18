@@ -1,6 +1,7 @@
 classdef ManualSteer < handle
-    %MANUALSTEER Summary of this class goes here
-    %   Detailed explanation goes here
+    %MANUALSTEER Debugging utility to manually steer galvo
+    %   Opens a figure showing the steering range. Click to set the
+    %   channels of the SteerGalvo adapter.
     
     properties
         range = 10;

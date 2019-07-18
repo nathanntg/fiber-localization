@@ -1,5 +1,5 @@
 classdef CameraSimulate < Camera
-    %CAMERASIMULATE Camera acquisition class to acquire camera images.
+    %CAMERASIMULATE Camera acquisition class to simulate camera
     
     properties (Access=protected)
         width = 1024;

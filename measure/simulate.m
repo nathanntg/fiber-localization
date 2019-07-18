@@ -1,3 +1,6 @@
+% This files use simulator classes, no actual hardware. Helps debug the
+% underlying algorthms that contribute to the fiber localization process.
+
 %% SETUP VIDEO ACQUISITION
 camera = CameraSimulate();
 
@@ -6,7 +9,7 @@ steer = SteerGalvoSimulate(camera);
 
 %% CREATE LOCALIZATION
 localize = Localize(camera, steer);
-localize.save_frames = fales;
+localize.save_frames = false;
 
 %% RUN, DISCARDING OUTPUT
 a = localize.localizeFibers();

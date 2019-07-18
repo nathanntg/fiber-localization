@@ -1,6 +1,6 @@
 function [x, y, radius] = findSpot(img, mn, mx)
-%FINDSPOT Summary of this function goes here
-%   Detailed explanation goes here
+%FINDSPOT Find laser spot using otsu threshold to separate laser from
+%background
 
 if ~exist('mn', 'var')
     mn = 4;
@@ -12,10 +12,11 @@ end
 % filter
 img = medfilt2(img, [3 3]);
 
-% binarize
+% binarize (otsu threshold)
 img_bin = imbinarize(img);
 
-% get properties
+% get properties (find regions in the bright section of the binarized
+% image)
 properties = regionprops(img_bin, 'Centroid', 'MajorAxisLength', 'MinorAxisLength');
 
 % get centroids and radii
