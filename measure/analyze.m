@@ -61,34 +61,36 @@ figure; plot(1:size(traces, 2), traces(1, :), 1:size(traces, 2), traces(idx2(2),
 
 % exclude nan rows (inaccessible for excitation)
 idx = ~all(isnan(distances(:, :, 1)), 2);
-distances_subset = log(mean(distances(idx, idx, :), 3));
+distances_subset = mean(distances(idx, idx, :), 3);
 
-% square form
-distances_subset_sq = distances_subset;
-distances_subset_sq(logical(eye(size(distances_subset_sq)))) = 0;
-distances_subset_sq = squareform(distances_subset_sq);
+% normalize so that diagonal is 1
+distances_subset = bsxfun(@rdivide, distances_subset, distances_subset(logical(eye(size(distances_subset)))));
 
-% number of fibers
-fibers_subset = size(distances_subset, 1);
+% assume log dropoff in signal
+Mdis = -100 .* log(distances_subset);
+Mdis(distances_subset < 0) = 0;
 
-% setup least squares
-reshape_pos = @(x) [0 0; reshape(x, fibers_subset - 1, 2)];
-F = @(x) pdist(reshape_pos(x), 'euclidean') - distances_subset_sq;
+% convert to M format
+% https://math.stackexchange.com/a/423898
+Mm = (Mdis(1, :) .^ 2 + Mdis(:, 1) .^ 2 - Mdis .^ 2) ./ 2;
 
-% run least squares
-pos_hat = rand(2 * (fibers_subset - 1), 1);
-pos_hat = lsqnonlin(F, pos_hat);
-pos_hat = reshape_pos(pos_hat);
+% eigen decomposition
+[U,S] = eig(Mm);
 
-% bar
-figure;
-bar(abs(distances_subset_sq - pdist(pos_hat, 'euclidean')));
-%[Mdis; pdist(pos_hat, 'euclidean')]
+% approximate position
+pos_hat = U * S .^ 0.5;
+pos_hat = pos_hat(:, [1 2]);
+
+%% fit to original distribution
+
+pos = coordinates_actual(idx, :);
+tform = fitgeotrans(pos_hat, pos, 'Similarity');
+pos_hat_t = transformPointsForward(tform, pos_hat);
 
 %% plot the distribution
 figure(4);
 
-c = [lines(7); zeros(fibers_subset - 7, 3)];
+c = [lines(7); zeros(size(pos, 1) - 7, 3)];
 
 subplot(1, 2, 1);
 scatter(pos(:, 1), pos(:, 2), 25, c);
@@ -97,7 +99,7 @@ ylim(3 * [-dy dy]);
 %axis equal;
 
 subplot(1, 2, 2);
-scatter(pos_hat(:, 1), pos_hat(:, 2), 25, c);
+scatter(pos_hat_t(:, 1), pos_hat_t(:, 2), 25, c);
 xlim(3 * [-dx dx]);
 ylim(3 * [-dy dy]);
 %axis equal;
