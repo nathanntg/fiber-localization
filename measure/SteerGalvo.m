@@ -1,6 +1,6 @@
 classdef SteerGalvo < Steer
-    %STEERGALVO Summary of this class goes here
-    %   Detailed explanation goes here
+    %STEERGALVO Generic steering based on 2D galvo
+    %   Contains logic needed to calibrate the 2D galvo with the camera. 
     
     properties (Access=protected)
         % started
@@ -61,6 +61,23 @@ classdef SteerGalvo < Steer
             
             % mark as calibrated
             calibrate@Steer(CL, camera);
+        end
+        
+        % debugging functions, useful for calibration
+        
+        function debugPoint(CL, ch1, ch2)
+            % start if needed
+            if ~CL.started
+                CL.startDevice();
+                CL.started = true;
+            end
+            
+            if ch1 < CL.ch1_range(1) || ch1 > CL.ch1_range(2) || ch2 < CL.ch2_range(1) || ch2 > CL.ch2_range(2)
+                error('Point out of bounds.');
+            end
+            
+            % set values
+            CL.setValues(ch1, ch2);
         end
         
         function debugCalibration(CL)

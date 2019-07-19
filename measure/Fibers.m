@@ -1,6 +1,5 @@
 classdef Fibers < handle
-    %FIBERS Summary of this class goes here
-    %   Detailed explanation goes here
+    %FIBERS Handles fiber identification and extraction from frames
     
     properties
         default_radius;

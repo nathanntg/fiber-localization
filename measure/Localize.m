@@ -1,6 +1,8 @@
 classdef Localize < handle
-    %LOCALIZE Summary of this class goes here
-    %   Detailed explanation goes here
+    %LOCALIZE Coordinates camera and steering to localize fibers
+    %   Will use steering to illuminate individual filbers, then acquire
+    %   frames from the camera to build distance matrix. Automatically
+    %   calls calibrate and fiber identification routines needed first.
     
     properties
         frames_to_discard = 1;
@@ -18,7 +20,6 @@ classdef Localize < handle
     methods
         function CL = Localize(camera, steer)
             %LOCALIZE Construct an instance of this class
-            %   Detailed explanation goes here
             CL.camera = camera;
             CL.steer = steer;
         end
