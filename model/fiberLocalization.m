@@ -33,21 +33,28 @@ colorbar;
 %% calculate
 
 % distance matrix (just reconstruction of Mrho)
-Mdis = squareform(-100. * log(Msig));
+Mdis = -100. * log(Msig);
 
-% setup lease squares
-reshape_pos = @(x) [0 0; reshape(x, nFibers - 1, 2)];
-F = @(x) pdist(reshape_pos(x), 'euclidean') - Mdis;
+% convert to M format
+% https://math.stackexchange.com/a/423898
+Mm = (Mdis(1, :) .^ 2 + Mdis(:, 1) .^ 2 - Mdis .^ 2) ./ 2;
 
-% run least squares
-pos_hat = rand(2 * (nFibers - 1), 1);
-pos_hat = lsqnonlin(F, pos_hat);
-pos_hat = reshape_pos(pos_hat);
+% eigen decomposition
+[U,S] = eig(Mm);
+
+% approximate position
+pos_hat = U * S .^ 0.5;
+pos_hat = pos_hat(:, [end - 1 end]);
 
 % bar
 figure(3);
-bar(abs(Mdis - pdist(pos_hat, 'euclidean')));
+bar(abs(squareform(Mdis) - pdist(pos_hat, 'euclidean')));
 %[Mdis; pdist(pos_hat, 'euclidean')]
+
+%% fit to original distribution
+
+tform = fitgeotrans(pos_hat, pos, 'Similarity');
+pos_hat_t = transformPointsForward(tform, pos_hat);
 
 %% plot the distribution
 figure(4);
@@ -61,7 +68,7 @@ ylim(3 * [-dy dy]);
 %axis equal;
 
 subplot(1, 2, 2);
-scatter(pos_hat(:, 1), pos_hat(:, 2), 25, c);
+scatter(pos_hat_t(:, 1), pos_hat_t(:, 2), 25, c);
 xlim(3 * [-dx dx]);
 ylim(3 * [-dy dy]);
 %axis equal;
